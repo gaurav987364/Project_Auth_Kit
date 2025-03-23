@@ -1,0 +1,89 @@
+Project setup using typescript;
+
+simple vaki 2 folder backend and frontend and install all important packages but but but in using typescript has process of making scripts and run server frequently; with types as dev dependencies
+
+=> typescript & ts-node-dev packages also their types for dev dependencies install knra hai
+
+=> after install all the packages run [npx tsc --init]
+
+=> now we have to make scripts for server,build & start
+
+=> now modify the ts.config.json file {
+    target,es2023
+    rootDir"./src,
+    outDir:"./dist,
+    add these two things
+     "include": ["src/**/*.ts", "@types"],
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+
+
+
+app.use(express.urlencoded({ extended: true })); 
+// using this upcoming data in  post request is parsed into json object or extended true se query string lib. ka use hota hai which deeeply nested object ko eaasly json me convert krti hai;
+
+// Best Practices 1st [For .env];
+Issue=> sometimes they are not imported properly using package or due to soe errors so we take care of them using the best Practices like below:
+
+1.create app.config.ts file in the config folder;
+2.create getENV function in the utils/helper.ts which take two arguments one is key and one is default value LIKE  when .env keys gives undefined so return the default value;
+
+// connect to db using atlas mongo is done...
+
+*/ Error Handling: 
+
+sabse phle to error Handling ki need samjho hame kyu chaiye, as we know in backend error ate hai unme kuch jyda type ya ache se kuch smj ni ata to hme hamare khud ki error handling krni hoti hai jo ki bhaut easy bana deti hai kaam ko;
+
+// hme error handing ko middleware me seup krna hota hai taki hm use request se phle error ko catch kr skee ok;
+
+=> hmne ek file banayi like errorHandler karke jisme hme paata hai ki bhaut sare error hote haii in backend ki duniya me to hm yaad jyda ko nhi rakh pate hai to hmne ek errorHandler file banayi jo based on that messgae return krti hai or usko after all route apni server/index file me import kiya or app.use(errorHandler) setup kiya....
+
+=> ab hame ek  asyncHandler bhi bnanan hai taki hm async errors ko cathc kr sake or app.use(errorHandler) ki help se us error ke liye appropriate messgae print karwa sake without crashing our app etc..
+or also hm ye handler isliye banate hai smjao hmne hmarai get request me response se upar ek new Error throw krwaaya in try catch block ab ye error catch block me jayga ok anda after all routs hmne hamarai errorHandler middleware setup ki hui hai to us upar wale error ke liye messgae print kr dege or vaki ka code execute nhi hoga ok...lekin hme uske liye har request routes par async await try-catch sab likhna padta baar-baar to use bacnke ke liye bs ek asyncHandler bana liya ab isee wrap kr lege sabko...
+
+
+// now creating this class for handling more validations erros 
+//error class for error messages based on the error code
+export class AppError extends Error {
+  public statusCode: HttpStatusCode;
+  public errorCode: ErrorCode;
+
+  constructor(
+    message: string,
+    statusCode = HTTPSTATUS.INTERNAL_SERVER_ERROR,
+    errorCode: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR
+  ) {
+    super(message);
+    this.statusCode = statusCode;
+    this.errorCode = errorCode;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+
+now finally updated the errorHandler function middleware
+
+//this handle the all types of error occured based on that retun code and message
+  if (error instanceof AppError) {
+    return res.status(error.statusCode).json({
+      message: error.message,
+      errorCode: error.errorCode,
+    });
+  }
+
+
+***// Now we make a ErrorType file for differtent type of errors taki hme jyada validate code na likhna pade like
+
+before
+if(!user){
+    res.status(400).send({
+        message:"User not found"
+    })
+}
+
+after
+throw new NotFoundExeption("User not found")
+
+
+
+//* Register Endpoints *//
