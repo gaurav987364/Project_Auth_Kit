@@ -87,3 +87,4 @@ throw new NotFoundExeption("User not found")
 
 
 //* Register Endpoints *//
+Making and User Model, session Model, Verification Model...
