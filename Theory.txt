@@ -89,4 +89,8 @@ throw new NotFoundExeption("User not found")
 //* Register Endpoints *//
 Making and User Model, session Model, Verification Model...
 
+//making validate schema for register and login so that if there are errors so  we send to client from zod
+
 //*Login Endpoints *//
+
+// we have to send cookie and session id  also we have to verify the userPrefrences object ...
