@@ -1,14 +1,26 @@
-import jwt from "jsonwebtoken";
 import SessionModel from "../database/models/sessionModel";
 import UserModel from "../database/models/userModel";
 import VerificationCodeModel, {
   Verifications,
 } from "../database/models/verificationModel";
 import { ErrorCode } from "../utils/enums/errorCode-enums";
-import { BadRequestException } from "../utils/ErrorTypes";
-import { fortyFiveMinutesFromNow } from "../utils/helper";
+import {
+  BadRequestException,
+  UnauthorizedException,
+} from "../utils/ErrorTypes";
+import {
+  calculateExpirationDate,
+  fortyFiveMinutesFromNow,
+  ONE_DAY_IN_MS,
+} from "../utils/helper";
 import { loginDataProps, registerDataProps } from "../utils/interface/types";
 import { config } from "../config/app.config";
+import {
+  refreshTokenSignOptions,
+  RefreshTPayload,
+  signJwtToken,
+  verifyJwtToken,
+} from "../utils/jwt";
 
 export const RegisterService = async (registerData: registerDataProps) => {
   const { name, email, password } = registerData;
@@ -75,25 +87,16 @@ export const LoginService = async (loginData: loginDataProps) => {
   });
 
   //access token
-  const accessToken = jwt.sign(
+  const accessToken = signJwtToken({
+    userId: existingUser._id,
+    sessionId: session._id,
+  });
+
+  const refreshToken = signJwtToken(
     {
-      userId: existingUser._id,
       sessionId: session._id,
     },
-    config.JWT.SECRET as jwt.Secret,
-    {
-      audience: "existingUser",
-      expiresIn: config.JWT.EXPIRES_IN,
-    } as jwt.SignOptions
-  );
-
-  const refreshToken = jwt.sign(
-    { sessionId: session._id },
-    config.JWT.REFRESH_SECRET as jwt.Secret,
-    {
-      audience: "existingUser",
-      expiresIn: config.JWT.REFRESH_EXPIRES_IN,
-    } as jwt.SignOptions
+    refreshTokenSignOptions
   );
 
   return {
@@ -101,5 +104,56 @@ export const LoginService = async (loginData: loginDataProps) => {
     refreshToken,
     user: existingUser,
     mfaRequired: false,
+  };
+};
+
+//refresh token service
+export const RefreshTokenService = async (refreshToken: string) => {
+  //verify refresh token
+  const { payload } = verifyJwtToken<RefreshTPayload>(refreshToken, {
+    secret: refreshTokenSignOptions.secret,
+  });
+  console.log("payload", payload);
+
+  if (!payload) {
+    throw new UnauthorizedException("Invalid refresh token");
+  }
+
+  const session = await SessionModel.findById(payload.sessionId);
+  const now = Date.now();
+
+  if (!session) {
+    throw new UnauthorizedException("Session does not exist");
+  }
+
+  if (session.expiresAt.getTime() <= now) {
+    throw new UnauthorizedException("Session expired");
+  }
+
+  const sessionRequireRefresh =
+    session.expiresAt.getTime() - now <= ONE_DAY_IN_MS;
+
+  if (sessionRequireRefresh) {
+    session.expiresAt = calculateExpirationDate(config.JWT.REFRESH_EXPIRES_IN);
+    await session.save();
+  }
+
+  const newRefreshToken = sessionRequireRefresh
+    ? signJwtToken(
+        {
+          sessionId: session._id,
+        },
+        refreshTokenSignOptions
+      )
+    : undefined;
+
+  const accessToken = signJwtToken({
+    userId: session.userId,
+    sessionId: session._id,
+  });
+
+  return {
+    accessToken,
+    newRefreshToken,
   };
 };

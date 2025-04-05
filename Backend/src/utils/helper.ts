@@ -38,7 +38,9 @@ export const ThirtyDaysFromNow = (): Date => {
 
 //expires from fortyFiveMinutesFromNow now function
 export const fortyFiveMinutesFromNow = (): Date => {
-  return new Date(Date.now() + 45 * 60 * 1000);
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 45);
+  return now;
 };
 
 //generateUniqueVerificationCode for sending in mail
@@ -67,3 +69,5 @@ export const calculateExpirationDate = (expiresIn: string = "15m"): Date => {
       throw new Error('Invalid unit. Use "m", "h", or "d".');
   }
 };
+
+export const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // 1 day in milliseconds
