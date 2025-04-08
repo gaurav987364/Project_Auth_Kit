@@ -6,12 +6,17 @@ import VerificationCodeModel, {
 import { ErrorCode } from "../utils/enums/errorCode-enums";
 import {
   BadRequestException,
+  HttpException,
+  InternalServerException,
+  NotFoundException,
   UnauthorizedException,
 } from "../utils/ErrorTypes";
 import {
+  anHourFromNow,
   calculateExpirationDate,
   fortyFiveMinutesFromNow,
   ONE_DAY_IN_MS,
+  threeMinutesAgo,
 } from "../utils/helper";
 import { loginDataProps, registerDataProps } from "../utils/interface/types";
 import { config } from "../config/app.config";
@@ -21,6 +26,12 @@ import {
   signJwtToken,
   verifyJwtToken,
 } from "../utils/jwt";
+import { sendEmail } from "../mailers/mailer";
+import {
+  passwordResetTemplate,
+  verifyEmailTemplate,
+} from "../mailers/templates/template";
+import { HTTPSTATUS } from "../config/http.config";
 
 export const RegisterService = async (registerData: registerDataProps) => {
   const { name, email, password } = registerData;
@@ -49,6 +60,11 @@ export const RegisterService = async (registerData: registerDataProps) => {
   });
 
   //sending verification code to email link;
+  const verificationUrl = `${config.APP_ORIGIN}/confirm-account?code=${verificationCode.code}`;
+  await sendEmail({
+    to: newUser.email,
+    ...verifyEmailTemplate(verificationUrl),
+  });
   return {
     user: newUser,
   };
@@ -155,5 +171,95 @@ export const RefreshTokenService = async (refreshToken: string) => {
   return {
     accessToken,
     newRefreshToken,
+  };
+};
+
+//verify email service;
+export const VerifyEmailService = async (code: string) => {
+  const validCode = await VerificationCodeModel.findOne({
+    code: code,
+    type: Verifications.EMAIL_VERIFICATION,
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (!validCode) {
+    throw new BadRequestException("Invalid Code.");
+  }
+
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    validCode.userId,
+    {
+      isEmailverified: true,
+    },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    throw new BadRequestException(
+      "Unable to verify email address.",
+      ErrorCode.VALIDATION_ERROR
+    );
+  }
+
+  await validCode.deleteOne();
+  return {
+    user: updatedUser,
+  };
+};
+
+//forgot password service;
+export const ForgotPasswordService = async (email: string) => {
+  const user = await UserModel.findOne({ email: email });
+
+  if (!user) {
+    throw new NotFoundException("User Not Found.");
+  }
+
+  //? check mail rate limit is 2 email per 3 or 10 min.
+  const timeAgo = threeMinutesAgo();
+  const maxAttempts = 2;
+
+  const count = await VerificationCodeModel.countDocuments({
+    userId: user._id,
+    type: Verifications.PASSWORD_RESET,
+    createdAt: { $gt: timeAgo },
+  });
+
+  console.log(count);
+
+  if (count >= maxAttempts) {
+    throw new HttpException(
+      "Too Many Request, try again later.",
+      HTTPSTATUS.TOO_MANY_REQUESTS,
+      ErrorCode.AUTH_TOO_MANY_ATTEMPTS
+    );
+  }
+
+  const expiresAt = anHourFromNow();
+  const validCode = await VerificationCodeModel.create({
+    userId: user._id,
+    type: Verifications.PASSWORD_RESET,
+    expiresAt,
+  });
+  console.log(validCode);
+
+  const resetLink = `${config.APP_ORIGIN}/reset-password?code=${
+    validCode.code
+  }$exp=${expiresAt.getTime()}`;
+
+  const { data, error } = await sendEmail({
+    to: user.email,
+    ...passwordResetTemplate(resetLink),
+  });
+
+  console.log(data?.id);
+
+  if (!data?.id) {
+    throw new InternalServerException(`${error?.name} ${error?.message}`);
+  }
+
+  return {
+    url: resetLink,
+    emailId: data.id,
   };
 };

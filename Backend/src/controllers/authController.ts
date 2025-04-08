@@ -2,18 +2,21 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { HTTPSTATUS } from "../config/http.config";
 import {
+  emailSchema,
   loginSchema,
   registerSchema,
+  VerificationSchema,
 } from "../utils/validators/auth.validator";
 import {
+  ForgotPasswordService,
   LoginService,
   RefreshTokenService,
   RegisterService,
+  VerifyEmailService,
 } from "./authService";
 import {
   getAccessTokenCookieOptions,
   getRefreshTokenCookieOptions,
-  REFRESH_PATH,
   setAuthenticationCookies,
 } from "../utils/setCookies";
 import { UnauthorizedException } from "../utils/ErrorTypes";
@@ -89,4 +92,30 @@ const refreshToken = asyncHandler(
   }
 );
 
-export { register, login, refreshToken };
+//verify email
+const verifyEmail = asyncHandler(
+  async (req: Request, res: Response): Promise<any> => {
+    const { code } = VerificationSchema.parse(req.body);
+
+    await VerifyEmailService(code);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Email Verified Successfully.",
+    });
+  }
+);
+
+//forgot password
+const forgotPassword = asyncHandler(
+  async (req: Request, res: Response): Promise<any> => {
+    const email = emailSchema.parse(req.body.email);
+
+    await ForgotPasswordService(email);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Password reset email sent to your e-mail",
+    });
+  }
+);
+
+export { register, login, refreshToken, verifyEmail, forgotPassword };

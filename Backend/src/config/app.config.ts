@@ -12,6 +12,11 @@ const appConfig = () => ({
     REFRESH_EXPIRES_IN: getENV("JWT_REFRESH_EXPIRES_IN", "30d"),
   },
   MONGO_URI: getENV("MONGO_URI", "mongodb://localhost:27017/project_auth_kit"),
+  RESEND_API_KEY: getENV(
+    "RESEND_API_KEY",
+    "re_etNKmc6T_MDRrQK6trfjVFsTiHicA9bfh"
+  ),
+  MAILER_SENDER: getENV("MAILER_SENDER", "onboarding@gmail.com"),
 });
 
 export const config = appConfig();
