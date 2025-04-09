@@ -94,3 +94,21 @@ Making and User Model, session Model, Verification Model...
 //*Login Endpoints *//
 
 // we have to send cookie and session id  also we have to verify the userPrefrences object ...
+
+
+
+//refresh api 
+
+//verify email 
+
+//send email template + resend setup
+
+//forgot password (means user clikc on this and we have to send code to this user)
+
+//reset password (now on that mail of forgot password have button that redirect user to this route with that code and we have to allow user to update or add new password ok)
+
+//passport jwt setup pure sekho strategy ko
+
+//logout api (clearing session ok)
+
+//session api

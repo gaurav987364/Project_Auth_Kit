@@ -18,3 +18,8 @@ export type CookiePayloadType = {
   accessToken: string;
   refreshToken: string;
 };
+
+export interface resetPasswordServiceProps {
+  password: string;
+  verificationCode: string;
+}

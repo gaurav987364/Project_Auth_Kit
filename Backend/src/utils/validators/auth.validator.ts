@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const VerificationCodeSchema = z.string().trim().min(1).max(255);
+export const emailSchema = z.string().trim().email().min(1).max(200);
+
 export const registerSchema = z
   .object({
     name: z.string().trim().min(2).max(20),
@@ -24,7 +27,5 @@ export const VerificationSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   password: z.string().trim().min(6).max(255),
-  verificationCode: VerificationSchema,
+  verificationCode: VerificationCodeSchema,
 });
-
-export const emailSchema = z.string().trim().email().min(1).max(200);

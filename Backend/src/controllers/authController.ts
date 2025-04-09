@@ -5,21 +5,25 @@ import {
   emailSchema,
   loginSchema,
   registerSchema,
+  resetPasswordSchema,
   VerificationSchema,
 } from "../utils/validators/auth.validator";
 import {
   ForgotPasswordService,
   LoginService,
+  LogoutService,
   RefreshTokenService,
   RegisterService,
+  ResetPasswordService,
   VerifyEmailService,
 } from "./authService";
 import {
+  clearAuthenticationCookies,
   getAccessTokenCookieOptions,
   getRefreshTokenCookieOptions,
   setAuthenticationCookies,
 } from "../utils/setCookies";
-import { UnauthorizedException } from "../utils/ErrorTypes";
+import { NotFoundException, UnauthorizedException } from "../utils/ErrorTypes";
 
 const register = asyncHandler(
   async (req: Request, res: Response): Promise<any> => {
@@ -118,4 +122,38 @@ const forgotPassword = asyncHandler(
   }
 );
 
-export { register, login, refreshToken, verifyEmail, forgotPassword };
+//reset password
+const resetPassword = asyncHandler(
+  async (req: Request, res: Response): Promise<any> => {
+    const body = resetPasswordSchema.parse(req.body);
+
+    await ResetPasswordService(body);
+
+    return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+      message: "Reset Password Successfully.",
+    });
+  }
+);
+
+//logout
+const logout = asyncHandler(
+  async (req: Request, res: Response): Promise<any> => {
+    const sessionId = req.sessionId;
+    if (!sessionId) {
+      throw new NotFoundException("Session is invalid.");
+    }
+    await LogoutService(sessionId);
+    return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+      message: "User logout successfully",
+    });
+  }
+);
+export {
+  register,
+  login,
+  refreshToken,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  logout,
+};

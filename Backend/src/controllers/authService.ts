@@ -1,5 +1,6 @@
 import SessionModel from "../database/models/sessionModel";
 import UserModel from "../database/models/userModel";
+import bcrypt from "bcrypt";
 import VerificationCodeModel, {
   Verifications,
 } from "../database/models/verificationModel";
@@ -262,4 +263,43 @@ export const ForgotPasswordService = async (email: string) => {
     url: resetLink,
     emailId: data.id,
   };
+};
+
+//reset password service;
+export const ResetPasswordService = async (body: any) => {
+  const { password, verificationCode } = body;
+  const validCode = await VerificationCodeModel.findOne({
+    code: verificationCode,
+    type: Verifications.PASSWORD_RESET,
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (!validCode) {
+    throw new NotFoundException("Invalid Code or Expired Code.");
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const updatedUser = await UserModel.findByIdAndUpdate(validCode.userId, {
+    password: hashedPassword,
+  });
+
+  if (!updatedUser) {
+    throw new BadRequestException("Failed to reset password.");
+  }
+
+  await validCode.deleteOne();
+
+  await SessionModel.deleteMany({
+    userId: updatedUser._id,
+  });
+  return {
+    user: updatedUser,
+  };
+};
+
+//logout service
+export const LogoutService = async (sessionId: string) => {
+  return await SessionModel.findByIdAndDelete(sessionId);
 };

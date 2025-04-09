@@ -16,8 +16,8 @@ const sessionSchema = new mongoose.Schema<SessionDocument>({
     index: true,
   },
   userAgent: { type: String, required: false },
-  expiresAt: { type: Date, default: Date.now },
-  createdAt: { type: Date, default: ThirtyDaysFromNow },
+  expiresAt: { type: Date, required: true, default: ThirtyDaysFromNow },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const SessionModel = mongoose.model<SessionDocument>("Session", sessionSchema);
