@@ -52,6 +52,15 @@ const login = asyncHandler(
       body
     );
 
+    //later work after mfa setup/verify
+    if (mfaRequired) {
+      return res.status(HTTPSTATUS.OK).json({
+        message: "Verify MFA Authentication",
+        mfaRequired,
+        user,
+      });
+    }
+
     return setAuthenticationCookies({
       res,
       accessToken,

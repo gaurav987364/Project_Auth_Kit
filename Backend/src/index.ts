@@ -11,6 +11,7 @@ import authRouter from "./routes/authRoute";
 import passport from "./middlewares/passport";
 import { authenticateJWT } from "./strategies/jwt-strategy";
 import sessionRoutes from "./routes/sessionRoutes";
+import mfaRoute from "./routes/mfaRoute";
 //! Very important to import like this above line ok
 
 const BASE_PATH = config.BASE_PATH;
@@ -44,6 +45,9 @@ app.get(
 
 //setting up routes middlewares
 app.use(`${BASE_PATH}/auth`, authRouter);
+
+//2FA routes;
+app.use(`${BASE_PATH}/mfa`, authenticateJWT, mfaRoute);
 
 //session routes with startegy
 app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes);

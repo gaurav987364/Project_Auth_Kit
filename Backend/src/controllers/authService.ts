@@ -97,6 +97,14 @@ export const LoginService = async (loginData: loginDataProps) => {
   }
 
   //check if the user enable 2fa return user null
+  if (existingUser.userPreferences.enable2FA) {
+    return {
+      user: null,
+      mfaRequired: true,
+      accessToken: "",
+      refreshToken: "",
+    };
+  }
 
   const session = await SessionModel.create({
     userId: existingUser._id,
