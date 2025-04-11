@@ -112,3 +112,21 @@ Making and User Model, session Model, Verification Model...
 //logout api (clearing session ok)
 
 //session api
+
+// setting up the routes, service & middleware for the mfa;
+
+
+// frontend setup (Next-js)
+
+npx create-next-app@latest
+
+npm i react-hook-form, zod, react-icons,
+npx shadcn init
+xpx shadcn add ( use this command to add components by selecting with spacebar)
+npm i ua-parser-js ( a some kind of parser library);
+npm i date-fns
+npm i next-themes
+
+for data fetching
+
+npm i @tanstack/react-query
