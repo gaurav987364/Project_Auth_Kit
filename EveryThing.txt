@@ -165,14 +165,115 @@ Rate Limiting: Use express-rate-limit for login/signup.
 
 
 
+All About passport js :-
+
+Passport.js ek Node.js authentication middleware hai jo Express.js ke sath kaam karta hai.
+
+=> Username/password (local)
+=> Google, Facebook, Twitter (OAuth)
+=> JWT
+=> GitHub, Instagram, etc.
+
+
+
+=> Kyu use karte hain Passport.js?
+
+✅ Middleware-style system (easily pluggable into Express)
+✅ Dozens of strategies supported (local, JWT, OAuth, etc.)
+✅ Community maintained
+✅ Easy to plug into existing apps
+✅ Session or Stateless (JWT) dono support karta hai
+
+
+=> Popular strategies :-
+
+1. local (username/password auth)
+2. jwt (stateless jwt-based auth)
+3. google-oauth20 (google login)
+etc....
+
+
+
+==> Internals (Simplified Flow):-
+
+1. User logs in ➝ Backend signs JWT ➝ Frontend stores it
+
+2. On future requests, client sends token in Authorization: Bearer <token>
+
+3. passport-jwt extracts & verifies token
+
+4. If valid ➝ attaches user object to req.user
+
+
+ALTERNATIVES FOR PASSPORT-JS
+
+1.custom JWT Middleware,
+2.next-auth
+3.Auth.js
+4.Firebase Auth,
+5. Clerk, Auth0, Supabase,Auth etc.
+
+
+✅ When to Use Passport.js?
+Use it when:
+
+1. You need multiple strategies (e.g., Google + JWT + Sessions)
+
+2. You're already using Express
+
+3. You want centralized auth management
+
+=> Avoid it when:
+
+1.You’re building only JWT-based stateless auth in a small app
+
+2.You want minimal boilerplate (then just use custom jwt.verify() middleware)
 
 
 
 
 
+🔴Access Token vs Refresh Token full guide :-
+
+=> access token are short lived (proves user is logged-in)  they have time of 10min-1hr only; they are store in a memory or httponly cookie;
+
+=> refresh token are used to get new access token so that user is keep logged-in for long time also they have long lived like 7-30days and they store in cookie and Database as well;
+
+ Token Workflow Overview
+✅ User logs in → backend validates credentials
+
+✅ Backend returns:
+
+accessToken (short expiry)
+
+refreshToken (long expiry)
+
+✅ Frontend stores:
+
+accessToken in memory (or Authorization header)
+
+refreshToken in HttpOnly cookie (can’t be accessed by JS)
+
+🔁 When access token expires, refresh token is sent to /refresh endpoint
+
+✅ Backend verifies refresh token → returns new access token
+
+
+🛡️Security Best Practices
+Sign both tokens with different secrets
+
+Use short expiry for access tokens (15m–30m)
+
+Store refresh tokens securely (HttpOnly cookie or encrypted DB)
+
+On logout or user deactivation, invalidate refresh token
+
+Optional: use token rotation (change refresh token after each use)
 
 
 
+🧠 Bonus: Access Token Auto-Renew on Frontend ok;
+You can make Axios interceptor to refresh token automatically when access token expires.
 
 
 
