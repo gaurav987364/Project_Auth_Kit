@@ -129,4 +129,4 @@ npm i next-themes
 
 for data fetching
 
-npm i @tanstack/react-query
+npm i @tanstack/react-query;
