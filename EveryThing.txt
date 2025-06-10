@@ -281,14 +281,6 @@ You can make Axios interceptor to refresh token automatically when access token 
 
 
 
-
-
-
-
-
-
-
-
 //* Questions based on jWT, Authentication/Authorization , local storage, cookie, sessions */
 
 Q: Is Jwt are statefull or stateless ?
